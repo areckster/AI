@@ -1,32 +1,22 @@
 # AI Chat Application
 
-This project provides a macOS SwiftUI frontend and a Python backend to interact with an Ollama model. The UI displays the model's streaming output and separates the model's internal reasoning (between `<think>` tags) in an expandable section.
+This project provides a Python backend and a browser-based frontend to interact with an [Ollama](https://ollama.com) model. The UI streams the model's output in real time and displays the model's internal reasoning, enclosed in `<think>` tags, inside an expandable section above each reply.
 
-## Backend (Python)
+## Requirements
 
-The backend uses FastAPI and streams the output of the model via WebSocket.
+- Python 3.9+
+- [Ollama](https://ollama.com) with the model `goekdenizguelmez/JOSIEFIED-Qwen3:4b-q5_k_m`
 
-### Setup
+## Running the App
 
-```bash
-cd backend
-pip install -r requirements.txt
-python server.py
-```
+1. Install Python dependencies:
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+2. Start the backend server:
+   ```bash
+   python backend/server.py
+   ```
+3. Open `http://localhost:8000` in your browser.
 
-The server starts on `http://localhost:8000` and exposes a WebSocket endpoint at `ws://localhost:8000/ws`.
-
-## Frontend (SwiftUI)
-
-The macOS app is located in `macos/AIChat`. It connects to the backend via WebSocket and renders the streamed Markdown response while showing the model's "thoughts" in a collapsible `DisclosureGroup`.
-
-### Building
-
-Open `macos/AIChat` in Xcode or build using Swift Package Manager:
-
-```bash
-cd macos/AIChat
-swift build
-```
-
-Run the resulting app. Enter a prompt and watch the streamed reply; expand **Thoughts** to inspect the model's reasoning.
+Enter a prompt in the text box and click **Send**. The model's response will stream in real time. Expand the **Model thinking...** section to view the reasoning text captured between `<think>` and `</think>`.
