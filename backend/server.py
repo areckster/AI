@@ -1,11 +1,21 @@
 import asyncio
 import json
+from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 import uvicorn
 
 MODEL = "goekdenizguelmez/JOSIEFIED-Qwen3:4b-q5_k_m"
 
 app = FastAPI()
+
+FRONTEND_PATH = Path(__file__).resolve().parent.parent / "frontend"
+
+
+@app.get("/")
+async def serve_frontend():
+    """Serve the chat frontend."""
+    return FileResponse(FRONTEND_PATH / "index.html")
 
 async def stream_ollama(prompt: str, ws: WebSocket):
     """Run ollama and stream output to websocket, splitting thought and answer."""
