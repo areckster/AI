@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
@@ -20,10 +21,20 @@ async def serve_frontend():
 async def stream_ollama(prompt: str, ws: WebSocket):
     """Run ollama and stream output to websocket, splitting thought and answer."""
     process = await asyncio.create_subprocess_exec(
-        "ollama", "run", MODEL, prompt,
+        "ollama",
+        "run",
+        MODEL,
+        prompt,
         stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT,
+        stderr=asyncio.subprocess.PIPE,
     )
+
+    # Drain stderr to suppress spinners/progress output from Ollama
+    async def _discard(stream: asyncio.StreamReader):
+        while await stream.read(64):
+            pass
+
+    asyncio.create_task(_discard(process.stderr))
 
     mode = "answer"
     buffer = ""
@@ -33,6 +44,11 @@ async def stream_ollama(prompt: str, ws: WebSocket):
             if not chunk:
                 break
             text = chunk.decode("utf-8", errors="ignore")
+            # Strip ANSI escape sequences and spinner characters
+            text = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", text)
+            text = text.replace("\r", "")
+            for ch in "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏":
+                text = text.replace(ch, "")
             buffer += text
             while buffer:
                 if mode == "answer":
